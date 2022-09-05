@@ -2,59 +2,54 @@ package by.naumenka.eventservicerest;
 
 import by.naumenka.eventserviceapi.EventService;
 import by.naumenka.eventservicedto.Event;
+import by.naumenka.eventservicedto.EventDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/events")
 @RequiredArgsConstructor
-public class EventServiceController {
+public class EventServiceController implements EventApi {
 
     private final EventService eventService;
+    private final EventAssembler eventAssembler;
 
-    @PostMapping("/new")
-    public ResponseEntity<Event> createEvent(@RequestBody Event event) {
-        Event created = eventService.createEvent(event);
-
-        return new ResponseEntity<>(created, HttpStatus.CREATED);
+    @Override
+    public EventModel createEvent(EventDto eventDto) {
+        EventDto event = eventService.createEvent(eventDto);
+        return eventAssembler.toModel(event);
     }
 
-    @PutMapping
-    public ResponseEntity<Event> updateEvent(@RequestBody Event event) {
-        Event updatedEvent = eventService.updateEvent(event);
-
-        return new ResponseEntity<>(updatedEvent, HttpStatus.OK);
+    @Override
+    public EventModel updateEvent(EventDto eventDto) {
+        EventDto event = eventService.updateEvent(eventDto);
+        return eventAssembler.toModel(event);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Event> getEventById(@PathVariable long id) {
-        Event eventById = eventService.getEvent(id);
-
-        return new ResponseEntity<>(eventById, HttpStatus.FOUND);
+    @Override
+    public EventModel getEventById(long id) {
+        EventDto event = eventService.getEvent(id);
+        return eventAssembler.toModel(event);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<HttpStatus> deleteEvent(@PathVariable long id) {
+    @Override
+    public ResponseEntity<Void> deleteEvent(long id) {
         eventService.deleteEvent(id);
-
-        return ResponseEntity.ok(HttpStatus.OK);
+        return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/all")
+    @Override
     public ResponseEntity<List<Event>> getAllEvents() {
         List<Event> events = eventService.getAllEvents();
-
-        return new ResponseEntity<>(events, HttpStatus.FOUND);
+        return new ResponseEntity<>(events, HttpStatus.OK);
     }
 
-    @GetMapping("/{title}")
-    public ResponseEntity<List<Event>> getEventsByTitle(@PathVariable String title) {
+    @Override
+    public ResponseEntity<List<Event>> getEventsByTitle(String title) {
         List<Event> eventsByTitle = eventService.getAllEventsByTitle(title);
-
-        return new ResponseEntity<>(eventsByTitle, HttpStatus.FOUND);
+        return new ResponseEntity<>(eventsByTitle, HttpStatus.OK);
     }
 }
